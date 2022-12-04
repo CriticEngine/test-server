@@ -2,7 +2,7 @@ import jester, ws, ws/jester_extra
 
 import router
 
-router routes:
+routes:
   get "/ws":
     try:
       var ws = await newWebSocket(request)
@@ -28,5 +28,5 @@ when isMainModule:
     Port(2222),
     bindAddr="127.0.0.1",
   )
-  var jest = initJester(routes, s)
+  var jest = initJester(s)
   jest.serve()
