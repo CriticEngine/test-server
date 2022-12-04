@@ -50,7 +50,8 @@ function createWebcon(nick) {
                 character.id = data["id"];
                 character.nickname = data["nick"];
                 secret = data["secret"];
-                
+                character.sprite = new Image()
+                character.sprite.src = "https://app.pixelencounter.com/api/basic/monsters/" + character.id + "/png?size=50";
             }
             else 
             {
@@ -106,7 +107,8 @@ const character = {
     sprite: new Image()
 }
 
-character.sprite.src = "https://app.pixelencounter.com/api/basic/monsters/" + character.id + "/png?size=50";
+var spritesCache = {
+}
 
 startListenKeys()
 
@@ -137,7 +139,7 @@ function drawAllPlayers() {
 
 function drawPlayer(player) {
     if (player["id"] != character.id) {        
-        drawPers(player["x"], player["y"], player["nickname"], player["id"], character.sprite)
+        drawPers(player["x"], player["y"], player["nickname"], player["id"], spritesCache[player["id"]])
     }
 }
 
@@ -173,9 +175,12 @@ function startListenKeys() {
     }); 
 }
 
-function render() {
-   
+function render() {    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle =	"rgb(35,38,33)";
+    ctx.fill();
+    ctx.fillStyle =	"rgb(255,255,255)";
     drawPers(character.position.x, character.position.y, character.nickname, character.id, character.sprite)
     drawAllPlayers()
 }
@@ -193,7 +198,14 @@ function calculate() {
     if (keyboard.S) {
         character.position.y += 5
     }
-        
+       
+    function loadSkin(player) {
+        if (typeof spritesCache[player["id"]] === 'undefined') {
+            spritesCache[player["id"]] = new Image()
+            spritesCache[player["id"]].src = "https://app.pixelencounter.com/api/basic/monsters/" + character.id + "/png?size=50";
+        }
+    }
+    allPlayers.forEach(player => loadSkin(player));
 }
 
 function animationRequest() {
