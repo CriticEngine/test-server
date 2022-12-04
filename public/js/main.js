@@ -202,7 +202,7 @@ function calculate() {
     function loadSkin(player) {
         if (typeof spritesCache[player["id"]] === 'undefined') {
             spritesCache[player["id"]] = new Image()
-            spritesCache[player["id"]].src = "https://app.pixelencounter.com/api/basic/monsters/" + character.id + "/png?size=50";
+            spritesCache[player["id"]].src = "https://app.pixelencounter.com/api/basic/monsters/" + player["id"] + "/png?size=50";
         }
     }
     allPlayers.forEach(player => loadSkin(player));
