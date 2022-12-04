@@ -60,7 +60,7 @@ proc auth*(secret: string, data: JsonNode): string =
       "secret": newClient.secret,
     }
 
-proc routerr*(str:string): string =
+proc router*(str:string): string =
   timeChecker() #LIVE TIME
   var json: JsonNode = %* {} 
   var secret: string 
