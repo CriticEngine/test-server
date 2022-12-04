@@ -6,3 +6,11 @@ canvas {
 body {
     margin: 0;
 }
+
+.login {
+  position: absolute;
+
+  z-index:  100;
+  top: 40%;
+  left: 35%;
+}

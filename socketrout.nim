@@ -7,29 +7,39 @@ type
     secret: string
     id: string
     last_time: int64
-    data: tuple [
-      nickname:string,
-      x,y,z: float32,
-    ]
+    nickname:string
+    x,y,z: float32
 
 var clients*: seq[Client]
 
 proc timeChecker(): void =
-  for cilent_n in clients.len-1..0:
-      if clients[cilent_n].last_time < toUnix(getTime()) - 100:
+  if clients.len > 0:
+    for cilent_n in clients.len-1..0:
+      if toUnix(getTime()) - clients[cilent_n].last_time > 10:
+        echo "try deleteee"
         clients.delete(cilent_n)
+
+proc getAll*(): string =
+  return $ %*{
+    "status": true,
+    "event": "getAll",
+    "data": {
+      "players": %clients # секрет исправить
+    }
+  }
 
 proc update*(secret: string, data: JsonNode): string =
   if clients.len > 0:
     for cilent_n in 0..clients.len-1:
-      if clients[cilent_n].secret == secret:
-        var x, y, z: float32
-
-proc getAll*(): string =
-  return $ %*{
-    "count": clients.len
-  }
-        
+      if clients[cilent_n].secret == secret:        
+        if data.contains("x"):
+          clients[cilent_n].x = data["x"].getFloat(default=0)
+        if data.contains("y"):
+          clients[cilent_n].y = data["y"].getFloat(default=0)
+        if data.contains("z"):
+          clients[cilent_n].z = data["z"].getFloat(default=0)
+  return getAll()
+       
 
 proc auth*(secret: string, data: JsonNode): string =
   if clients.len > 0:
@@ -50,13 +60,14 @@ proc auth*(secret: string, data: JsonNode): string =
       newClient.id.add(char(rand(int('0') .. int('9'))))   
   newClient.last_time = toUnix(getTime())
   if data.contains("nick"):
-    newClient.data.nickname = data["nick"].getStr(default="NoName")
+    newClient.nickname = data["nick"].getStr(default="NoName")
   clients.add(newClient)
   return $ %*
     {
       "status": true, 
       "event": "auth",  
       "id": newClient.id,
+      "nick": newClient.nickname,
       "secret": newClient.secret,
     }
 
@@ -84,6 +95,8 @@ proc router*(str:string): string =
   case event:
   of "auth":
     return auth(secret, data)
+  of "update":
+    return update(secret, data)
   of "getAll":
     return getAll()
   else:

@@ -10,7 +10,7 @@ routes:
   get "/ws":
     try:
       var ws = await newWebSocket(request)
-      await ws.send("connected")
+      await ws.send("""{"status": true, "event": "connect"}""")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
         await ws.send(router(packet))
