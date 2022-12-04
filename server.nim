@@ -22,10 +22,10 @@ router routes:
     resp Http500, "Something bad happened: " & exception.msg
   error Http404:
     redirect uri("/404")
-when isMainModule:
-  let s = newSettings(
-    Port(2222),
-    bindAddr="127.0.0.1",
-  )
-  var jest = initJester(routes, s)
-  jest.serve()
+
+let s = newSettings(
+  Port(2222),
+  bindAddr="127.0.0.1",
+)
+var jest = initJester(routes, s)
+jest.serve()
