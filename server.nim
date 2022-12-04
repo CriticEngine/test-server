@@ -1,4 +1,4 @@
-import jester, ws, ws/jester_extra
+import jester, ws, ws/jester_extra, asyncdispatch, strutils
 
 import socketrout
 
