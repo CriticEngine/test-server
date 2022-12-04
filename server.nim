@@ -17,8 +17,6 @@ routes:
     except WebSocketClosedError:
       echo "socket closed"
     result[0] = TCActionRaw # tell jester we handled the request
-  get "/":
-    redirect uri("/index.html")
   get "/404":
     resp "404 ERROR"
   error Exception:
