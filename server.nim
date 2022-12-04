@@ -1,19 +1,9 @@
-import jester, ws, ws/jester_extra, asyncdispatch, strutils
+import jester, asyncdispatch, strutils
 
 import socketrout
 
 
 router routes:
-  get "/ws":
-    try:
-      var ws = await newWebSocket(request)
-      await ws.send("connected")
-      while ws.readyState == Open:
-        let packet = await ws.receiveStrPacket()
-        await ws.send(router(packet))
-    except WebSocketClosedError:
-      echo "socket closed"
-    result[0] = TCActionRaw # tell jester we handled the request
   get "/":
     redirect uri("/index.html")
   get "/404":
