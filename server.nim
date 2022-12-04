@@ -1,6 +1,10 @@
+
+
 import jester, ws, ws/jester_extra, asyncdispatch, strutils
 
 import socketrout
+
+var clients: seq[Client]
 
 settings:
   port = Port(2222)
@@ -13,7 +17,7 @@ routes:
       await ws.send("""{"status": true, "event": "connect"}""")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
-        await ws.send(router(packet))
+        await ws.send(clients.router(packet))
     except WebSocketClosedError:
       echo "socket closed"
     result[0] = TCActionRaw # tell jester we handled the request

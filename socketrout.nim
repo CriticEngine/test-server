@@ -1,25 +1,24 @@
-import json, times, random
+import json, times, random, asyncdispatch, asynchttpserver
 
 randomize()
 
 type
-  Client = object
-    secret: string
-    id: string
-    last_time: int64
-    nickname:string
-    x,y,z: float32
+  Client* = object
+    secret*: string
+    id*: string
+    last_time*: int64
+    nickname*:string
+    x*,y*,z*: float32
 
-var clients*: seq[Client]
 
-proc timeChecker(): void =
+proc timeChecker*(clients: var seq[Client]): void =
   if clients.len > 0:
-    for cilent_n in clients.len-1..0:
-      if toUnix(getTime()) - clients[cilent_n].last_time > 10:
-        echo "try deleteee"
+    for cilent_n in countdown(clients.len-1, 0):
+      if toUnix(getTime()) - clients[cilent_n].last_time > 10: 
+        echo "KEKEKEKEKEKEKEK"
         clients.delete(cilent_n)
 
-proc getAll*(): string =
+proc getAll*(clients: var seq[Client]): string =
   return $ %*{
     "status": true,
     "event": "getAll",
@@ -28,7 +27,7 @@ proc getAll*(): string =
     }
   }
 
-proc update*(secret: string, data: JsonNode): string =
+proc update*(clients: var seq[Client], secret: string, data: JsonNode): string =
   if clients.len > 0:
     for cilent_n in 0..clients.len-1:
       if clients[cilent_n].secret == secret:        
@@ -38,10 +37,10 @@ proc update*(secret: string, data: JsonNode): string =
           clients[cilent_n].y = data["y"].getFloat(default=0)
         if data.contains("z"):
           clients[cilent_n].z = data["z"].getFloat(default=0)
-  return getAll()
+  return clients.getAll()
        
 
-proc auth*(secret: string, data: JsonNode): string =
+proc auth*(clients: var seq[Client], secret: string, data: JsonNode): string =
   if clients.len > 0:
     for cilent_n in 0..clients.len-1:
       if clients[cilent_n].secret == secret:
@@ -71,8 +70,7 @@ proc auth*(secret: string, data: JsonNode): string =
       "secret": newClient.secret,
     }
 
-proc router*(str:string): string =
-  timeChecker() #LIVE TIME
+proc router*(clients: var seq[Client], str:string): string =
   var json: JsonNode = %* {} 
   var secret: string 
   var event: string 
@@ -82,8 +80,8 @@ proc router*(str:string): string =
   except JsonParsingError:
     echo "JSON ERROR:" & str
   if json.contains("secret"):
-    secret = json["secret"].getStr(default="")
-    for client in clients:
+    secret = json["secret"].getStr(default="")  
+    if clients.len > 0: 
       for cilent_n in 0..clients.len-1:
         if clients[cilent_n].secret == secret:
           clients[cilent_n].last_time = toUnix(getTime())
@@ -91,14 +89,15 @@ proc router*(str:string): string =
     event = json["event"].getStr(default="unknown")
   if json.contains("data"):
     data = json["data"]
+  clients.timeChecker()
 
   case event:
   of "auth":
-    return auth(secret, data)
+    return clients.auth(secret, data)
   of "update":
-    return update(secret, data)
+    return clients.update(secret, data)
   of "getAll":
-    return getAll()
+    return clients.getAll()
   else:
     return $ %*{
       "status": false,
