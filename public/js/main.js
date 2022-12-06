@@ -17,12 +17,6 @@ function createWebcon(nick) {
     ws = new WebSocket(host)
     ws.onopen = function () {
         console.log('Вермя: ' + new Date()  + " Соединение установлено.");
-        console.log(JSON.stringify({ 
-            event: "auth", 
-            data: {
-                nick: nick
-            } 
-        })); 
         ws.send(JSON.stringify({ 
             event: "auth", 
             data: {
@@ -43,15 +37,23 @@ function createWebcon(nick) {
     
     ws.onmessage = function (event) {
         //console.log('Вермя: ' + new Date()  +" Получены данные " + event.data);
+        ws.send(JSON.stringify({ 
+            event: "update",
+            secret: secret, 
+            data: {
+                x: clientPlayer.position.x,
+                y: clientPlayer.position.y,
+            } 
+        })); 
         var data = JSON.parse(event.data)
         if (data["event"] == "auth" ) {
             if (data["status"] == true ) {
                 console.log("АВТОИЗАЦИЯ УСПЕШНО");
-                character.id = data["id"];
-                character.nickname = data["nick"];
+                clientPlayer.id = data["id"];
+                clientPlayer.nickname = data["nick"];
                 secret = data["secret"];
-                character.sprite = new Image()
-                character.sprite.src = "https://app.pixelencounter.com/api/basic/monsters/" + character.id + "/png?size=50";
+                clientPlayer.sprite = new Image()
+                clientPlayer.sprite.src = "https://app.pixelencounter.com/api/basic/monsters/" + clientPlayer.id + "/png?size=60";
             }
             else 
             {
@@ -62,15 +64,7 @@ function createWebcon(nick) {
             if (data["status"] == true ) {
                 allPlayers = data["data"]["players"]
             }
-        }
-        ws.send(JSON.stringify({ 
-            event: "update",
-            secret: secret, 
-            data: {
-                x: character.position.x,
-                y: character.position.y,
-            } 
-        })); 
+        }        
     };
     
     ws.onerror = function (error) {
@@ -80,37 +74,38 @@ function createWebcon(nick) {
 }
 // LOGIN FORM -------------------------
 
-window.onload = e => {
-    const form = document.querySelector('#login')
-    
-    const formHandler = e => {
-      e.preventDefault()
-      const formData = new FormData( e.target )
-      var data = formData      
-      character.nickname = data.get("nick")
-      createWebcon(data.get("nick"))
-      requestAnimationFrame(animationRequest);
-      form.remove()      
-    }
-    
-    form.addEventListener('submit', formHandler)
-  }
+const form = document.querySelector('#login')
+
+const formHandler = e => {
+    e.preventDefault()
+    const formData = new FormData( e.target )
+    var data = formData      
+    clientPlayer.nickname = data.get("nick")
+    createWebcon(data.get("nick"))
+    animationRequest();
+    form.remove()      
+    startListenKeys()
+    console.log("ytechka")
+}
+
+
+form.addEventListener('submit', formHandler)
 // GAME ----------------------------
 
-const character = {
+const clientPlayer = {
     position: {
-        x: 250,
-        y: 100
+        x: 0,
+        y: 0,
     },
-    nickname: "testNickName",
+    nickname: "undefined",
     id: 1,
     sprite: new Image()
 }
 
 var spritesCache = {
+    hub: new Image()
 }
-
-startListenKeys()
+spritesCache.hub.src = "img/hub.png";
 
 // RENDER ----------------------------
 
@@ -121,16 +116,24 @@ var keyboard = {
     S: false,
 }
 
+function xToScreen(x) {
+    return  window.innerWidth/2 + x - clientPlayer.position.x
+}
+function yToScreen(y) {
+    return window.innerHeight/2 - y + clientPlayer.position.y
+}
+
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+ctx.imageSmoothingEnabled = false;
 
 function drawPers(x,y, nickname, id, sprite) {
-    ctx.drawImage(sprite, x-25, y-25);            
-    ctx.font = "18px arial";
+    ctx.drawImage(sprite, window.innerWidth/2-30, window.innerHeight/2-30);            
+    ctx.font = "18px Joystix Monospace";
     ctx.textAlign = "center"
-    ctx.fillText(nickname, x, y-28);
+    ctx.fillText(nickname, window.innerWidth/2, window.innerHeight/2-35);
 }
 
 function drawAllPlayers() {
@@ -138,8 +141,11 @@ function drawAllPlayers() {
 }
 
 function drawPlayer(player) {
-    if (player["id"] != character.id) {        
-        drawPers(player["x"], player["y"], player["nickname"], player["id"], spritesCache[player["id"]])
+    if (player["id"] != clientPlayer.id) { 
+        ctx.drawImage(spritesCache[player["id"]], xToScreen(player["x"]-30) , yToScreen(player["y"]+30));            
+        ctx.font = "18px Joystix Monospace";
+        ctx.textAlign = "center"
+        ctx.fillText(player["nickname"], xToScreen(player["x"]), yToScreen(player["y"]+35));       
     }
 }
 
@@ -159,7 +165,7 @@ function startListenKeys() {
         }
     });
     
-     document.addEventListener('keyup', function(event) {
+    document.addEventListener('keyup', function(event) {
         if (event.code == 'KeyA') {
             keyboard.A = false;
         }
@@ -175,41 +181,85 @@ function startListenKeys() {
     }); 
 }
 
-function render() {    
+function loadSkin(player) {
+    if (typeof spritesCache[player["id"]] === 'undefined') {
+        spritesCache[player["id"]] = new Image()
+        spritesCache[player["id"]].src = "https://app.pixelencounter.com/api/basic/monsters/" + player["id"] + "/png?size=60";
+    }
+}
+function loadSkins(){
+allPlayers.forEach(player => loadSkin(player));
+}
+
+function drawCords() {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgb(100,100,100)";
+    var step = 500
+
+    vertical_count = Math.floor(window.innerWidth/step);
+    pol_count = Math.floor((window.innerWidth/2)/step)
+    vertical_offset = window.innerWidth/2 - step*pol_count - clientPlayer.position.x % step;
+    for (var i = -1; i < vertical_count+1; i++) {
+        var offset = vertical_offset + i*step 
+        ctx.beginPath();
+        ctx.moveTo(offset, 0);
+        ctx.lineTo(offset, window.innerHeight);
+        ctx.stroke();
+    }
+
+    horizontal_count = Math.floor(window.innerHeight/step);
+    polh_count = Math.floor((window.innerHeight/2)/step)
+    horizontal_offset = window.innerHeight/2 - step*polh_count + clientPlayer.position.y % step;
+    for (var i = -1; i < horizontal_count+1; i++) {
+        var offset = horizontal_offset + i*step 
+        ctx.beginPath();
+        ctx.moveTo(0, offset);
+        ctx.lineTo(window.innerWidth, offset);
+        ctx.stroke();
+    }
+
+
+    ctx.textAlign = "left"
+    ctx.font = "18px Joystix Monospace";
+    ctx.fillText("(x: " + clientPlayer.position.x + "; y: " + clientPlayer.position.y + ")", 10 , window.innerHeight-15); 
+    if (Math.abs(clientPlayer.position.x < 4000) && Math.abs(clientPlayer.position.y < 4000)) {
+        // -------- HUB ------
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(spritesCache.hub, xToScreen(-150), yToScreen(200), 300, 100); 
+    }
+}
+
+function render() {  
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;  
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle =	"rgb(35,38,33)";
     ctx.fill();
     ctx.fillStyle =	"rgb(255,255,255)";
-    drawPers(character.position.x, character.position.y, character.nickname, character.id, character.sprite)
+    drawCords()
     drawAllPlayers()
+    drawPers(clientPlayer.position.x, clientPlayer.position.y, clientPlayer.nickname, clientPlayer.id, clientPlayer.sprite)
 }
 
 function calculate() {
     if (keyboard.A) {
-        character.position.x -= 5
+        clientPlayer.position.x -= 5
     }
     if (keyboard.D) {
-        character.position.x += 5
+        clientPlayer.position.x += 5
     }
     if (keyboard.W) {
-        character.position.y -= 5
+        clientPlayer.position.y += 5
     }
     if (keyboard.S) {
-        character.position.y += 5
+        clientPlayer.position.y -= 5
     }
-       
-    function loadSkin(player) {
-        if (typeof spritesCache[player["id"]] === 'undefined') {
-            spritesCache[player["id"]] = new Image()
-            spritesCache[player["id"]].src = "https://app.pixelencounter.com/api/basic/monsters/" + player["id"] + "/png?size=50";
-        }
-    }
-    allPlayers.forEach(player => loadSkin(player));
+    loadSkins()
 }
 
 function animationRequest() {
-    calculate();
-    render();
-    requestAnimationFrame(animationRequest);
+        calculate();
+        render();
+        requestAnimationFrame(animationRequest);
 }

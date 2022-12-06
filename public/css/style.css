@@ -2,7 +2,10 @@ canvas {
     position:absolute;
     width:100%;
     height:100%;
+    font-smooth: never;
+    -webkit-font-smoothing : none;
 }
+
 body {
     margin: 0;
 }
@@ -13,4 +16,9 @@ body {
   z-index:  100;
   top: 40%;
   left: 35%;
+}
+
+@font-face {
+  font-family: 'Joystix Monospace';
+  src: url('/font/joystixmonospace.ttf');
 }
