@@ -10,15 +10,17 @@ type
     nickname*:string
     x*,y*,z*: float32
 
+var clients: seq[Client]
 
-proc timeChecker*(clients: var seq[Client]): void =
+
+proc timeChecker*(): void =
   if clients.len > 0:
     for cilent_n in countdown(clients.len-1, 0):
       if toUnix(getTime()) - clients[cilent_n].last_time > 10: 
-        echo "KEKEKEKEKEKEKEK"
+        echo "Player " & clients[cilent_n].nickname & " deleted (time)"
         clients.delete(cilent_n)
 
-proc getAll*(clients: var seq[Client]): string =
+proc getAll*(): string =
   return $ %*{
     "status": true,
     "event": "getAll",
@@ -27,7 +29,7 @@ proc getAll*(clients: var seq[Client]): string =
     }
   }
 
-proc update*(clients: var seq[Client], secret: string, data: JsonNode): string =
+proc update*(secret: string, data: JsonNode): string =
   if clients.len > 0:
     for cilent_n in 0..clients.len-1:
       if clients[cilent_n].secret == secret:        
@@ -37,10 +39,10 @@ proc update*(clients: var seq[Client], secret: string, data: JsonNode): string =
           clients[cilent_n].y = data["y"].getFloat(default=0)
         if data.contains("z"):
           clients[cilent_n].z = data["z"].getFloat(default=0)
-  return clients.getAll()
+  return getAll()
        
 
-proc auth*(clients: var seq[Client], secret: string, data: JsonNode): string =
+proc auth*( secret: string, data: JsonNode): string =
   if clients.len > 0:
     for cilent_n in 0..clients.len-1:
       if clients[cilent_n].secret == secret:
@@ -70,7 +72,7 @@ proc auth*(clients: var seq[Client], secret: string, data: JsonNode): string =
       "secret": newClient.secret,
     }
 
-proc router*(clients: var seq[Client], str:string): string =
+proc router*(str:string): string =
   var json: JsonNode = %* {} 
   var secret: string 
   var event: string 
@@ -89,15 +91,15 @@ proc router*(clients: var seq[Client], str:string): string =
     event = json["event"].getStr(default="unknown")
   if json.contains("data"):
     data = json["data"]
-  clients.timeChecker()
+  timeChecker()
 
   case event:
   of "auth":
-    return clients.auth(secret, data)
+    return auth(secret, data)
   of "update":
-    return clients.update(secret, data)
+    return update(secret, data)
   of "getAll":
-    return clients.getAll()
+    return getAll()
   else:
     return $ %*{
       "status": false,
