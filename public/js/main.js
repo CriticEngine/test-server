@@ -48,7 +48,7 @@ function createWebcon(nick) {
     
     ws.onmessage = function (event) {
         //console.log('Вермя: ' + new Date()  +" Получены данные " + event.data);
-        setTimeout(sendUpdate, 400)
+        setTimeout(sendUpdate, 300)
         var data = JSON.parse(event.data)
         if (data["event"] == "auth" ) {
             if (data["status"] == true ) {
