@@ -13,6 +13,17 @@ else {
 var connected = false
 var ws
 
+function sendUpdate(){
+    ws.send(JSON.stringify({ 
+        event: "update",
+        secret: secret, 
+        data: {
+            x: clientPlayer.position.x,
+            y: clientPlayer.position.y,
+        } 
+    }));     
+} 
+
 function createWebcon(nick) {
     ws = new WebSocket(host)
     ws.onopen = function () {
@@ -37,14 +48,7 @@ function createWebcon(nick) {
     
     ws.onmessage = function (event) {
         //console.log('Вермя: ' + new Date()  +" Получены данные " + event.data);
-        ws.send(JSON.stringify({ 
-            event: "update",
-            secret: secret, 
-            data: {
-                x: clientPlayer.position.x,
-                y: clientPlayer.position.y,
-            } 
-        })); 
+        setTimeout(sendUpdate, 300)
         var data = JSON.parse(event.data)
         if (data["event"] == "auth" ) {
             if (data["status"] == true ) {
