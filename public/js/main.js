@@ -4,10 +4,17 @@ var secret
 var allPlayers = []
 var host
 if (window.location.protocol == "https:") {
-    host = "wss://" + window.location.hostname + ":2222/ws"
+    var temphost = ""
+    if (window.location.hostname == "127.0.0.1"){
+        temphost = "127.0.0.1:2222"
+    }
+    else {
+        temphost = window.location.hostname
+    }
+    host = "wss://" + temphost + "/ws"
 } 
 else {
-    host = "ws://" + window.location.hostname + ":2222/ws"
+    host = "ws://" + temphost + "/ws"
 }
 
 var connected = false
