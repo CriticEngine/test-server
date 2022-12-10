@@ -1,14 +1,10 @@
 import jester
 
 router myrouter:
-  get "/404":
-    resp "you got 404"
-  get "/raise":
-    raise newException(Exception, "Foobar")
   error Exception:
     resp Http500, "Something bad happened: " & exception.msg
   error Http404:
-    redirect uri("/404")
+    resp "you got 404"
 
 when isMainModule:
   let s = newSettings(
