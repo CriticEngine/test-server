@@ -16,12 +16,12 @@ proc cb(req: Request) {.async, gcsafe.} =
         #echo "Received packet: " & packet
         asyncCheck ws.send(router(packet))
     except WebSocketClosedError:
-      echo "[DBG] Socket closed. "
+      echo "[DBG] Socket closed (client: " & req.hostname & ")"
     except WebSocketProtocolMismatchError:
-      echo "[DBG] Socket tried to use an unknown protocol: ", getCurrentExceptionMsg()
+      echo "[DBG] Socket tried to use an unknown protocol: ", getCurrentExceptionMsg() , " (client: " & req.hostname & ")"
     except WebSocketError:
-      echo "[DBG] Unexpected socket error: ", getCurrentExceptionMsg()
-  await req.respond(Http200, "SERVER TRY ")
+      echo "[DBG] Unexpected socket error: ", getCurrentExceptionMsg(), "(client: " & req.hostname & ")"
+  await req.respond(Http200, "SERVER (WebSoket) on ws://localhost:2222/ws")
 
 var server = newAsyncHttpServer()
 echo "[DBG] WebSocket started on ws://127.0.0.1:2222/ws"

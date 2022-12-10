@@ -10,12 +10,6 @@ type
     nickname*:string
     x*,y*: int
 
-type
-  ClientSerial* = object
-    id*: string
-    last_time*: int64
-    nickname*:string
-    x*,y*: float32
 
 var clients: seq[Client]
 

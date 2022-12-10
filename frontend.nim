@@ -8,7 +8,7 @@ router myrouter:
 
 when isMainModule:
   let s = newSettings(
-    Port(80),
+    Port(5000),
     bindAddr="127.0.0.1",
   )
   var jest = initJester(myrouter, s)

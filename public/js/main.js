@@ -59,14 +59,14 @@ function createWebcon(nick) {
                 allPlayers = data["data"]["players"]
             }
         }   
-        setInterval(ws.send(JSON.stringify({ 
+        ws.send(JSON.stringify({ 
             event: "update",
             secret: secret, 
             data: {
                 x: clientPlayer.position.x,
                 y: clientPlayer.position.y,
             } 
-        })), 2000)     
+        }))    
     };
     
     ws.onerror = function (error) {
@@ -256,16 +256,16 @@ function render() {
 
 function calculate() {
     if (keyboard.A) {
-        clientPlayer.position.x -= 5
+        clientPlayer.position.x --
     }
     if (keyboard.D) {
-        clientPlayer.position.x += 5
+        clientPlayer.position.x ++
     }
     if (keyboard.W) {
-        clientPlayer.position.y += 5
+        clientPlayer.position.y ++
     }
     if (keyboard.S) {
-        clientPlayer.position.y -= 5
+        clientPlayer.position.y --
     }
     loadSkins()
 }

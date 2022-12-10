@@ -11,4 +11,6 @@ requires "nim >= 1.6.0"
 requires "ws"
 requires "jester"
 
-task exec, "Build and execute server"
+task exec, "Build and execute server":
+    exec "nim c -d:release frontend.nim"
+    exec "nim c -r -d:release server.nim"
