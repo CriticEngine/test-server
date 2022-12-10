@@ -4,28 +4,19 @@ var secret
 var allPlayers = []
 var host
 if (window.location.protocol == "https:") {
-    host = "wss://" + window.location.host + "/ws"
+    host = "wss://" + window.location.hostname + ":2222/ws"
 } 
 else {
-    host = "ws://" + window.location.host + "/ws"
+    host = "ws://" + window.location.hostname + ":2222/ws"
 }
 
 var connected = false
 var ws
 
-function sendUpdate(){
-    ws.send(JSON.stringify({ 
-        event: "update",
-        secret: secret, 
-        data: {
-            x: clientPlayer.position.x,
-            y: clientPlayer.position.y,
-        } 
-    }));     
-} 
-
 function createWebcon(nick) {
-    ws = new WebSocket(host)
+    
+    ws = new WebSocket(host);
+    
     ws.onopen = function () {
         console.log('Вермя: ' + new Date()  + " Соединение установлено.");
         ws.send(JSON.stringify({ 
@@ -47,8 +38,7 @@ function createWebcon(nick) {
     };
     
     ws.onmessage = function (event) {
-        //console.log('Вермя: ' + new Date()  +" Получены данные " + event.data);
-        setTimeout(sendUpdate, 300)
+        //console.log('Вермя: ' + new Date()  +" Получены данные " + event.data);        
         var data = JSON.parse(event.data)
         if (data["event"] == "auth" ) {
             if (data["status"] == true ) {
@@ -68,7 +58,15 @@ function createWebcon(nick) {
             if (data["status"] == true ) {
                 allPlayers = data["data"]["players"]
             }
-        }        
+        }   
+        setInterval(ws.send(JSON.stringify({ 
+            event: "update",
+            secret: secret, 
+            data: {
+                x: clientPlayer.position.x,
+                y: clientPlayer.position.y,
+            } 
+        })), 2000)     
     };
     
     ws.onerror = function (error) {
@@ -78,7 +76,16 @@ function createWebcon(nick) {
 }
 // LOGIN FORM -------------------------
 
-const form = document.querySelector('#login')
+const form = document.querySelector('#login');
+const skinImg = document.getElementById("skin-img");
+const skinId = document.getElementById("skin-id");
+skinId.value = Math.floor(Math.random() * 999999+1);
+skinImg.src = "https://app.pixelencounter.com/api/basic/monsters/" + skinId.value + "/png?size=60";
+
+function reloadSkin() {
+    skinId.value = Math.floor(Math.random() * 999999+1);
+    skinImg.src = "https://app.pixelencounter.com/api/basic/monsters/" + skinId.value + "/png?size=60";
+}
 
 const formHandler = e => {
     e.preventDefault()
@@ -90,6 +97,7 @@ const formHandler = e => {
     form.remove()      
     startListenKeys()
     console.log("ytechka")
+    //data.get("skin-id")
 }
 
 
@@ -103,7 +111,7 @@ const clientPlayer = {
     },
     nickname: "undefined",
     id: 1,
-    sprite: new Image()
+    sprite: skinImg
 }
 
 var spritesCache = {
@@ -135,7 +143,7 @@ ctx.imageSmoothingEnabled = false;
 
 function drawPers(x,y, nickname, id, sprite) {
     ctx.drawImage(sprite, window.innerWidth/2-30, window.innerHeight/2-30);            
-    ctx.font = "18px Joystix Monospace";
+    ctx.font = "16px PICO-8";
     ctx.textAlign = "center"
     ctx.fillText(nickname, window.innerWidth/2, window.innerHeight/2-35);
 }
@@ -147,7 +155,7 @@ function drawAllPlayers() {
 function drawPlayer(player) {
     if (player["id"] != clientPlayer.id) { 
         ctx.drawImage(spritesCache[player["id"]], xToScreen(player["x"]-30) , yToScreen(player["y"]+30));            
-        ctx.font = "18px Joystix Monospace";
+        ctx.font = "16px PICO-8";
         ctx.textAlign = "center"
         ctx.fillText(player["nickname"], xToScreen(player["x"]), yToScreen(player["y"]+35));       
     }
@@ -224,12 +232,12 @@ function drawCords() {
 
 
     ctx.textAlign = "left"
-    ctx.font = "18px Joystix Monospace";
+    ctx.font = "18px PICO-8";
     ctx.fillText("(x: " + clientPlayer.position.x + "; y: " + clientPlayer.position.y + ")", 10 , window.innerHeight-15); 
     if (Math.abs(clientPlayer.position.x < 4000) && Math.abs(clientPlayer.position.y < 4000)) {
         // -------- HUB ------
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(spritesCache.hub, xToScreen(-150), yToScreen(200), 300, 100); 
+        ctx.drawImage(spritesCache.hub, xToScreen(-spritesCache.hub.naturalWidth*2.5), yToScreen(200), spritesCache.hub.naturalWidth*5, spritesCache.hub.naturalHeight*5); 
     }
 }
 

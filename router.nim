@@ -8,7 +8,14 @@ type
     id*: string
     last_time*: int64
     nickname*:string
-    x*,y*,z*: float32
+    x*,y*: int
+
+type
+  ClientSerial* = object
+    id*: string
+    last_time*: int64
+    nickname*:string
+    x*,y*: float32
 
 var clients: seq[Client]
 
@@ -17,7 +24,7 @@ proc timeChecker*(): void =
   if clients.len > 0:
     for cilent_n in countdown(clients.len-1, 0):
       if toUnix(getTime()) - clients[cilent_n].last_time > 10: 
-        echo "Player " & clients[cilent_n].nickname & " deleted (time)"
+        echo "[DBG] Player " & clients[cilent_n].nickname & " deleted (time)"
         clients.delete(cilent_n)
 
 proc getAll*(): string =
@@ -34,11 +41,9 @@ proc update*(secret: string, data: JsonNode): string =
     for cilent_n in 0..clients.len-1:
       if clients[cilent_n].secret == secret:        
         if data.contains("x"):
-          clients[cilent_n].x = data["x"].getFloat(default=0)
+          clients[cilent_n].x = data["x"].getInt(default=0)
         if data.contains("y"):
-          clients[cilent_n].y = data["y"].getFloat(default=0)
-        if data.contains("z"):
-          clients[cilent_n].z = data["z"].getFloat(default=0)
+          clients[cilent_n].y = data["y"].getInt(default=0)
   return getAll()
        
 
@@ -80,7 +85,7 @@ proc router*(str:string): string =
   try:
     json = parseJson(str)
   except JsonParsingError:
-    echo "JSON ERROR:" & str
+    echo "[DBG] JSON ERROR:" & str
   if json.contains("secret"):
     secret = json["secret"].getStr(default="")  
     if clients.len > 0: 

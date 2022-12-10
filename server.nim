@@ -1,25 +1,28 @@
 
 
-import jester, ws, ws/jester_extra, asyncdispatch, strutils
+import asyncdispatch, asynchttpserver, ws, osproc
+import router, deamon
 
-import socketrout
+var connections = newSeq[WebSocket]()
 
-settings:
-  port = Port(2222)
-  bindAddr = "127.0.0.1"
-  
-routes:
-  get "/ws":
+proc cb(req: Request) {.async, gcsafe.} =
+  if req.url.path == "/ws":
     try:
-      var ws = await newWebSocket(request)
-      #await ws.send("""{"status": true, "event": "connect"}""")
+      var ws = await newWebSocket(req)
+      connections.add ws
+      #await ws.send("Welcome to simple chat server")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
-        await ws.send(router(packet))
+        #echo "Received packet: " & packet
+        asyncCheck ws.send(router(packet))
     except WebSocketClosedError:
-      echo "socket closed"
-    result[0] = TCActionRaw # tell jester we handled the request
-  get "/404":
-    resp "404 ERROR"
-  error Exception:
-    resp Http500, "Something bad happened: " & exception.msg
+      echo "[DBG] Socket closed. "
+    except WebSocketProtocolMismatchError:
+      echo "[DBG] Socket tried to use an unknown protocol: ", getCurrentExceptionMsg()
+    except WebSocketError:
+      echo "[DBG] Unexpected socket error: ", getCurrentExceptionMsg()
+  await req.respond(Http200, "SERVER TRY ")
+
+var server = newAsyncHttpServer()
+echo "[DBG] WebSocket started on ws://127.0.0.1:2222/ws"
+waitFor server.serve(Port(2222), cb)

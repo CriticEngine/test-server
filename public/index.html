@@ -4,23 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=\, initial-scale=1.0">
-    <title>GAME</title>
+    <meta name="viewport" content="scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Pixeler</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-        <form class="login" id="login">
-            <div class="form-example">
-                <label for="nick">Nick Name: </label>
-                <input type="text" name="nick" id="nick" required>
+    <form class="login" id="login">
+        <div class="">
+            <div class="skinchanger">
+                <img id="skin-img" src="" style="width: 60px; height: 60px;">
+                <img src="/img/reload.png" style="width: 40px; height: 40px; margin-top: 15px; margin-left: 20px;" alt="reload skin" onclick="reloadSkin()">
             </div>
-            <div class="form-example">
-                <input type="submit" value="Login!">
-            </div>
-        </form>
- 
+            <input id="skin-id" type="hidden" name="skin-id" value="">
+            <label for="nick">nick: </label>
+            <input type="text" name="nick" id="nick" required>            
+        </div>
+        <div class="">
+            <input type="submit" value="join">
+        </div>
+    </form>
+    <div class="chat">
+
+    </div>
 
     <canvas id="canvas"></canvas>
     <script src="js/main.js"></script>    

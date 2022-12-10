@@ -18,7 +18,30 @@ body {
   left: 35%;
 }
 
+.skinchanger {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+
+.chat {
+  position: absolute;
+
+  z-index:  100;
+  width: 200;
+  height: 600;
+  right: 0%;
+  top: 40px;
+}
+
 @font-face {
-  font-family: 'Joystix Monospace';
-  src: url('/font/joystixmonospace.ttf');
+  font-family: 'PICO-8';
+  src: url('/font/pico-8.ttf');
+}
+
+label {
+  font-family: 'PICO-8';
+}
+input {
+  font-family: 'PICO-8';
 }
