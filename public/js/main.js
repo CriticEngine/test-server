@@ -263,16 +263,16 @@ function render() {
 
 function calculate() {
     if (keyboard.A) {
-        clientPlayer.position.x --
+        clientPlayer.position.x -= 5
     }
     if (keyboard.D) {
-        clientPlayer.position.x ++
+        clientPlayer.position.x += 5
     }
     if (keyboard.W) {
-        clientPlayer.position.y ++
+        clientPlayer.position.y += 5
     }
     if (keyboard.S) {
-        clientPlayer.position.y --
+        clientPlayer.position.y -= 5
     }
     loadSkins()
 }
