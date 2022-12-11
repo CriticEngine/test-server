@@ -1,11 +1,15 @@
-import json, times, random, asyncdispatch, asynchttpserver
+import json, times, random
 
 randomize()
 
 type
+  Message* = object
+    last_time*: int64
+    test*: string
+
   Client* = object
     secret*: string
-    id*: string
+    id*: int
     last_time*: int64
     nickname*:string
     x*,y*: int
@@ -56,11 +60,14 @@ proc auth*( secret: string, data: JsonNode): string =
       newClient.secret.add(char(rand(int('a') .. int('z'))))
     else:
       newClient.secret.add(char(rand(int('A') .. int('Z'))))
-  for _ in 1..6:
-      newClient.id.add(char(rand(int('0') .. int('9'))))   
+  newClient.id = rand(1..999999)
   newClient.last_time = toUnix(getTime())
   if data.contains("nick"):
     newClient.nickname = data["nick"].getStr(default="NoName")
+  if data.contains("id"):
+    var id_k = data["id"].getInt(default=newClient.id)
+    if not ((id_k > 999999) or (id_k < 1)):
+      newClient.id = id_k
   clients.add(newClient)
   return $ %*
     {

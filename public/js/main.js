@@ -14,6 +14,12 @@ if (window.location.protocol == "https:") {
     host = "wss://" + temphost + "/ws"
 } 
 else {
+    if (window.location.hostname == "127.0.0.1"){
+        temphost = "127.0.0.1:2222"
+    }
+    else {
+        temphost = window.location.hostname
+    }
     host = "ws://" + temphost + "/ws"
 }
 
@@ -29,7 +35,8 @@ function createWebcon(nick) {
         ws.send(JSON.stringify({ 
             event: "auth", 
             data: {
-                nick: nick
+                nick: nick,
+                id: parseInt(skinId.value),
             } 
         }));       
     };
@@ -81,6 +88,7 @@ function createWebcon(nick) {
     };      
     
 }
+
 // LOGIN FORM -------------------------
 
 const form = document.querySelector('#login');
