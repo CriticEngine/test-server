@@ -18,6 +18,18 @@ body {
   left: 35%;
 }
 
+.chat {
+  position: absolute;
+
+  z-index:  100;
+  top: 40%;
+  left: 35%;
+}
+
+.hidden {
+  display: none;
+}
+
 .skinchanger {
   display: flex;
   justify-content: center;

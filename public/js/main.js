@@ -102,7 +102,7 @@ function reloadSkin() {
     skinImg.src = "https://app.pixelencounter.com/api/basic/monsters/" + skinId.value + "/png?size=60";
 }
 
-const formHandler = e => {
+const formLoginHandler = e => {
     e.preventDefault()
     const formData = new FormData( e.target )
     var data = formData      
@@ -114,9 +114,26 @@ const formHandler = e => {
     console.log("ytechka")
     //data.get("skin-id")
 }
+form.addEventListener('submit', formLoginHandler)
 
 
-form.addEventListener('submit', formHandler)
+
+// FORM CHAT ----------------------------
+
+const chat = document.querySelector('#chat');
+const chatText = document.getElementById("chatText");
+chatText.value = "";
+
+function sendChatMessage(message) {
+    ws.send(JSON.stringify({ 
+        event: "sendMessage",
+        secret: secret, 
+        data: {
+            text: message
+        } 
+    }));      
+}
+
 // GAME ----------------------------
 
 const clientPlayer = {
@@ -126,7 +143,9 @@ const clientPlayer = {
     },
     nickname: "undefined",
     id: 1,
-    sprite: skinImg
+    sprite: skinImg,
+    move: true,
+    messages: []
 }
 
 var spritesCache = {
@@ -156,12 +175,6 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 ctx.imageSmoothingEnabled = false;
 
-function drawPers(x,y, nickname, id, sprite) {
-    ctx.drawImage(sprite, window.innerWidth/2-30, window.innerHeight/2-30);            
-    ctx.font = "16px PICO-8";
-    ctx.textAlign = "center"
-    ctx.fillText(nickname, window.innerWidth/2, window.innerHeight/2-35);
-}
 
 function drawAllPlayers() {
     allPlayers.forEach(player => drawPlayer(player));
@@ -169,14 +182,54 @@ function drawAllPlayers() {
 
 function drawPlayer(player) {
     if (player["id"] != clientPlayer.id) { 
+        // ANOTHER PLAYERS
+        drawMessages(xToScreen(player["x"]),yToScreen(player["y"]), player["messages"])
         ctx.drawImage(spritesCache[player["id"]], xToScreen(player["x"]-30) , yToScreen(player["y"]+30));            
         ctx.font = "16px PICO-8";
         ctx.textAlign = "center"
         ctx.fillText(player["nickname"], xToScreen(player["x"]), yToScreen(player["y"]+35));       
     }
+    else {
+        // MAIN PLAYER
+        drawMessages(window.innerWidth/2, window.innerHeight/2, player["messages"])
+        ctx.drawImage(clientPlayer.sprite, window.innerWidth/2-30, window.innerHeight/2-30);            
+        ctx.font = "16px PICO-8";
+        ctx.textAlign = "center"
+        ctx.fillText(clientPlayer.nickname, window.innerWidth/2, window.innerHeight/2-35);
+    }
+}
+
+function drawMessages(x,y,msgs) {
+    if (msgs.length > 0) {
+        for (var i = 0; i < msgs.length; i++) {            
+            ctx.font = "16px PICO-8";
+            ctx.textAlign = "center"
+            ctx.fillText(msgs[i]["text"], x, y - 50 - 25 * msgs.length + 25*i);
+        }
+    }
 }
 
 function startListenKeys() {
+    document.addEventListener('keypress', function(event) {
+        if (event.code == "Enter") {
+            if (clientPlayer.move) {
+                clientPlayer.move = false
+                // чат открыли
+                chat.classList.remove("hidden");
+                chatText.focus()
+            }
+            else {
+                clientPlayer.move = true
+                // отправка собщения / закрытие чата
+                chat.classList.add("hidden");
+                if (chatText.value != "") {
+                    sendChatMessage(chatText.value)
+                    chatText.value = ""
+                }
+            }
+        }        
+    });
+
     document.addEventListener('keydown', function(event) {
         if (event.code == 'KeyA') {
           keyboard.A = true;
@@ -266,22 +319,23 @@ function render() {
     ctx.fillStyle =	"rgb(255,255,255)";
     drawCords()
     drawAllPlayers()
-    drawPers(clientPlayer.position.x, clientPlayer.position.y, clientPlayer.nickname, clientPlayer.id, clientPlayer.sprite)
 }
 
 function calculate() {
-    if (keyboard.A) {
-        clientPlayer.position.x -= 5
-    }
-    if (keyboard.D) {
-        clientPlayer.position.x += 5
-    }
-    if (keyboard.W) {
-        clientPlayer.position.y += 5
-    }
-    if (keyboard.S) {
-        clientPlayer.position.y -= 5
-    }
+    if (clientPlayer.move) {
+        if (keyboard.A) {
+            clientPlayer.position.x -= 5
+        }
+        if (keyboard.D) {
+            clientPlayer.position.x += 5
+        }
+        if (keyboard.W) {
+            clientPlayer.position.y += 5
+        }
+        if (keyboard.S) {
+            clientPlayer.position.y -= 5
+        }
+    }    
     loadSkins()
 }
 

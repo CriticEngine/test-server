@@ -5,7 +5,7 @@ randomize()
 type
   Message* = object
     last_time*: int64
-    test*: string
+    text*: string
 
   Client* = object
     secret*: string
@@ -13,6 +13,7 @@ type
     last_time*: int64
     nickname*:string
     x*,y*: int
+    messages: seq[Message]
 
 
 var clients: seq[Client]
@@ -21,11 +22,31 @@ var clients: seq[Client]
 proc timeChecker*(): void =
   if clients.len > 0:
     for cilent_n in countdown(clients.len-1, 0):
+      # мессаги
+      if clients[cilent_n].messages.len > 0:
+        for massage_n in countdown(clients[cilent_n].messages.len-1, 0):
+          if toUnix(getTime()) - clients[cilent_n].messages[massage_n].last_time > 7:            
+            clients[cilent_n].messages.delete(massage_n)
+      # клиенты
       if toUnix(getTime()) - clients[cilent_n].last_time > 10: 
         echo "[DBG] Player " & clients[cilent_n].nickname & " deleted (time)"
         clients.delete(cilent_n)
+      
 
-proc getAll*(): string =
+proc sendMessage*(secret: string, data: JsonNode): string =
+  if clients.len > 0:
+    for cilent_n in 0..clients.len-1:
+      if clients[cilent_n].secret == secret:  
+        if data.contains("text"):
+          var text = data["text"].getStr(default="")
+          if text.len > 50:
+            text = text.substr(0,50)
+          clients[cilent_n].messages.add(Message(text: text, last_time: toUnix(getTime())))
+          echo "[DBG] Player " & clients[cilent_n].nickname & " send message: " & text
+  return ""
+
+proc getAll*(secret: string): string =
+  var parsedClients: seq[Client] 
   return $ %*{
     "status": true,
     "event": "getAll",
@@ -42,7 +63,7 @@ proc update*(secret: string, data: JsonNode): string =
           clients[cilent_n].x = data["x"].getInt(default=0)
         if data.contains("y"):
           clients[cilent_n].y = data["y"].getInt(default=0)
-  return getAll()
+  return getAll(secret)
        
 
 proc auth*( secret: string, data: JsonNode): string =
@@ -102,10 +123,12 @@ proc router*(str:string): string =
   case event:
   of "auth":
     return auth(secret, data)
+  of "sendMessage":
+    return sendMessage(secret, data)
   of "update":
     return update(secret, data)
   of "getAll":
-    return getAll()
+    return getAll(secret)
   else:
     return $ %*{
       "status": false,

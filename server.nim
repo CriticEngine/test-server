@@ -13,8 +13,10 @@ proc cb(req: Request) {.async, gcsafe.} =
       #await ws.send("Welcome to simple chat server")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
+        let result = router(packet)
         #echo "Received packet: " & packet
-        asyncCheck ws.send(router(packet))
+        if result != "":
+          asyncCheck ws.send(router(packet))
     except WebSocketClosedError:
       echo "[DBG] Socket closed (client: " & req.hostname & ")"
     except WebSocketProtocolMismatchError:
