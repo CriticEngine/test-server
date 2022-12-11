@@ -16,7 +16,7 @@ proc cb(req: Request) {.async, gcsafe.} =
         let result = router(packet)
         #echo "Received packet: " & packet
         if result != "":
-          asyncCheck ws.send(router(packet))
+          asyncCheck ws.send(result)
     except WebSocketClosedError:
       echo "[DBG] Socket closed (client: " & req.hostname & ")"
     except WebSocketProtocolMismatchError:
