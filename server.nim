@@ -13,7 +13,7 @@ proc cb(req: Request) {.async, gcsafe.} =
       #await ws.send("Welcome to simple chat server")
       while ws.readyState == Open:
         let packet = await ws.receiveStrPacket()
-        let result = router(packet)
+        var result = router(packet)
         #echo "Received packet: " & packet
         if result != "":
           asyncCheck ws.send(result)

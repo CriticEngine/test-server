@@ -40,7 +40,7 @@ proc sendMessage*(secret: string, data: JsonNode): string =
         if data.contains("text"):
           var text = data["text"].getStr(default="")
           if text.runeLen > 50:
-            text = text.runeSubStr(0,50)
+            text = text.runeSubStr(0,49)
           clients[cilent_n].messages.add(Message(text: text, last_time: toUnix(getTime())))
           echo "[DBG] Player " & clients[cilent_n].nickname & " send message: " & text
   return ""
@@ -84,7 +84,10 @@ proc auth*( secret: string, data: JsonNode): string =
   newClient.id = rand(1..999999)
   newClient.last_time = toUnix(getTime())
   if data.contains("nick"):
-    newClient.nickname = data["nick"].getStr(default="NoName")
+    var nick = data["nick"].getStr(default="NoName")
+    if nick.runeLen > 24:
+      nick = nick.runeSubStr(0,23)
+    newClient.nickname = nick
   if data.contains("id"):
     var id_k = data["id"].getInt(default=newClient.id)
     if not ((id_k > 999999) or (id_k < 1)):
