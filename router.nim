@@ -1,4 +1,4 @@
-import json, times, random
+import json, times, random, unicode
 
 randomize()
 
@@ -39,8 +39,8 @@ proc sendMessage*(secret: string, data: JsonNode): string =
       if clients[cilent_n].secret == secret:  
         if data.contains("text"):
           var text = data["text"].getStr(default="")
-          if text.len > 50:
-            text = text.substr(0,50)
+          if text.runeLen > 50:
+            text = text.runeSubStr(0,50)
           clients[cilent_n].messages.add(Message(text: text, last_time: toUnix(getTime())))
           echo "[DBG] Player " & clients[cilent_n].nickname & " send message: " & text
   return ""
